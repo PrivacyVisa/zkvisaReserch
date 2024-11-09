@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm, FieldError, UseFormRegister, UseFormSetValue } from 'react-hook-form';
 import { ITransaction , ICardInfo , IUrlPayload , Good } from '@/interface/transaction/transaction';
 
@@ -8,73 +8,6 @@ import { ITransaction , ICardInfo , IUrlPayload , Good } from '@/interface/trans
 type Props = {
     payload: IUrlPayload ;
 };
-
-
-export default function MainPaymentContainer({ payload }: Props) {
-    const { register, handleSubmit, setValue, formState: { errors } } = useForm<ICardInfo>();
-
-    const OnGeneratingProof = (data: ICardInfo) => {
-        const cardRefactor = data.cardNumber.replaceAll(" ","")  
-        const CardInfoTemp = {
-            ...data,
-            cardNumber : cardRefactor
-        }
-        const transaction : ITransaction = {
-            origin : payload.origin,
-            CardInfo : CardInfoTemp,
-            Goods : payload.Goods
-        } 
-        console.log(transaction)
-    }
-
-    return (
-        <section className="flex flex-row px-[2vw] gap-x-[2vw] py-[3vh]">
-            <div className="flex flex-col w-7/12 items-center">
-                <h1 className="text-xl font-bold mb-4">Payment Summary</h1>
-                <ul>
-                    {payload.Goods.map((item: Good, index) => (
-                        <li key={index} className="flex flex-col justify-between items-center p-4 border rounded-lg shadow-sm">
-                            <div>
-                                <h2 className="text-xl font-semibold">{item.name}</h2>
-                                <p className="text-gray-600">{item.description}</p>
-                                <p>Price per piece: ${item.ppp}</p>
-                                <div className="flex flex-row justify-between pr-[2vw]">
-                                    <p>Quantity: {item.amount}</p>
-                                    <p className="font-semibold">Total: ${item.amount * item.ppp}</p>
-                                </div>
-                            </div>
-                        </li>
-                    ))}
-                </ul>                
-            </div>
-
-            <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-                <form className="flex flex-col space-y-4" onSubmit={handleSubmit(OnGeneratingProof)}>
-                    <CardNumberInput
-                        register={register}
-                        setValue={setValue}
-                        error={errors.cardNumber}
-                    />
-                    <ExpiryDateInput
-                        register={register}
-                        errorMonth={errors.expiryMonth}
-                        errorYear={errors.expiryYear}
-                    />
-                    <CVCInput
-                        register={register}
-                        error={errors.cvc}
-                    />
-                    <button
-                        type="submit"
-                        className="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                    >
-                        Generating Proof Locally
-                    </button>
-                </form>
-            </div>
-        </section>
-    );
-}
 
 type InputProps = {
     register: UseFormRegister<ICardInfo>;
@@ -99,8 +32,9 @@ function CardNumberInput({ register, setValue, error }: InputProps) {
             <input
                 type="text"
                 id="cardNumber"
+                disabled
                 placeholder="1234 5678 9123 4567"
-                className={`mt-1 px-3 py-2 border ${error ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                className={`mt-1 px-3 py-2 border ${error ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-400`}
                 {...register("cardNumber", {
                     required: "Card number is required",
                     validate: (value) => {
@@ -212,5 +146,76 @@ function CVCInput({ register, error }: CVCInputProps) {
             />
             {error && <p className="text-red-500 text-sm">{error.message}</p>}
         </div>
+    );
+}
+
+export default function MainPaymentContainer({ payload }: Props) {
+    const { register, handleSubmit, setValue, formState: { errors } } = useForm<ICardInfo>();
+    const OnGeneratingProof = (data: ICardInfo) => {
+        const cardRefactor = data.cardNumber.replaceAll(" ","")  
+        const CardInfoTemp = {
+            ...data,
+            cardNumber : cardRefactor
+        }
+        const transaction : ITransaction = {
+            Origin : payload.Origin,
+            CardInfo : CardInfoTemp,
+            Goods : payload.Goods
+        } 
+        console.log(transaction)
+    }                                                           
+
+    useEffect(() => {
+        if (payload && payload.CardInfo && payload.CardInfo.cardNumber) {
+            setValue("cardNumber", payload.CardInfo.cardNumber); // Set card number from payload
+        }
+    }, [payload, setValue]);
+
+    return (
+        <section className="flex flex-row px-[2vw] gap-x-[2vw] py-[3vh]">
+            <div className="flex flex-col w-7/12 items-center">
+                <h1 className="text-xl font-bold mb-4">Payment Summary</h1>
+                <ul>
+                    {payload.Goods.map((item: Good, index) => (
+                        <li key={index} className="flex flex-col justify-between items-center p-4 border rounded-lg shadow-sm">
+                            <div>
+                                <h2 className="text-xl font-semibold">{item.name}</h2>
+                                <p className="text-gray-600">{item.description}</p>
+                                <p>Price per piece: ${item.ppp}</p>
+                                <div className="flex flex-row justify-between pr-[2vw]">
+                                    <p>Quantity: {item.amount}</p>
+                                    <p className="font-semibold">Total: ${item.amount * item.ppp}</p>
+                                </div>
+                            </div>
+                        </li>
+                    ))}
+                </ul>                
+            </div>
+
+            <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+                <form className="flex flex-col space-y-4" onSubmit={handleSubmit(OnGeneratingProof)}>
+                    <CardNumberInput
+                        register={register}
+                        setValue={setValue}
+                        error={errors.cardNumber}
+                    />
+                    <ExpiryDateInput
+                        register={register}
+                        errorMonth={errors.expiryMonth}
+                        errorYear={errors.expiryYear}
+                    />
+                    <CVCInput
+                        register={register}
+                        error={errors.cvc}
+                    />
+                    <button
+                        type="submit"
+                        className="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    >
+                        Generating Proof Locally
+                    </button>
+                </form>
+            </div>
+        </section>
     );
 }

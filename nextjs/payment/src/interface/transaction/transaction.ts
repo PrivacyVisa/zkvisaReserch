@@ -13,12 +13,13 @@ export interface Good {
 } 
 
 export interface ITransaction {
-    origin : string
+    Origin : string
     Goods : Good[]
     CardInfo : ICardInfo
 }
 
 export interface IUrlPayload { 
-    origin : string
+    Origin : string
     Goods : Good[] 
+    CardInfo : Partial<ICardInfo>
 }
