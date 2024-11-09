@@ -1,9 +1,7 @@
 
 import React, { useState } from 'react'
 
-import { Good , CartDataType  } from '@/interface/transaction';
-
-import { useRouter } from 'next/navigation';
+import { Good , TransactionType ,CartDataType } from '../interface/transaction';
 
 const AvailableItems: Good[] = [
     { 
@@ -24,10 +22,9 @@ const AvailableItems: Good[] = [
         ppp: 500, 
         description: 'Doraemon is a beloved robotic cat from the future, popularized in Japanese anime and manga. This collectible figure celebrates the timeless character who travels back in time to help his friend, Nobita. Perfect for fans of classic Japanese animation and collectors of iconic characters.' 
       },
-  ];
+];
 
 export default function MainShopContainer() {
-    const router = useRouter() ; 
     const [cart, setCart] = useState<CartDataType>([]);
 
     const addToCart = (item: Good) => {
@@ -54,8 +51,11 @@ export default function MainShopContainer() {
     const OnPurchaseHandler = ()=>{
         if (cart.length > 0 ){
             const HashedCart = encodeURIComponent(JSON.stringify(cart))
-            router.push(`payment/${HashedCart}`)
+            // console.log("redirect to ",process.env.ZK_VISA_URL)
+            const paymentUrl = `${process.env.ZK_VISA_URL}/payment/${HashedCart}`
+            window.open(paymentUrl, "_blank");
         }
+
         // More context 
         // also send cart to bank here as a transaction to provide bank to generate a proof
     }

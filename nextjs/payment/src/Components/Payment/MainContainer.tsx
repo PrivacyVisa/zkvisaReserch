@@ -1,12 +1,17 @@
 import React from 'react'
 
-import { CartDataType , Good } from '@/interface/transaction'
+import { CartDataType , Good } from '@/interface/transaction/transaction'
 
 type Props = { 
     payload : CartDataType
 }
 
 export default function MainPaymentContainer({payload} : Props) {
+    const OnGeneratingProof = ()=>{
+        
+    }
+
+
     return (
         <section
             className='flex flex-row px-[2vw] gap-x-[2vw] py-[3vh]'

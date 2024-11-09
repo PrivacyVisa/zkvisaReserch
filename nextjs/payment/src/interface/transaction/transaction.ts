@@ -6,3 +6,15 @@ export interface Good {
 } ; 
 
 export interface CartDataType extends Array<Good> {} ; 
+
+interface CardInfoType { 
+    cardNumber : string
+    expiredDate : string
+    secret : string
+}
+
+
+export interface TransactionType {
+    Goods : CartDataType,
+    CardInfo : CardInfoType
+}
