@@ -1,7 +1,7 @@
 import React from 'react'
 
 import MainPaymentContainer from '@/Components/Payment/MainContainer'
-import { CartDataType } from '@/interface/transaction/transaction'
+import { IUrlPayload } from '@/interface/transaction/transaction'
 
 export default async function page({
     params,
@@ -9,7 +9,7 @@ export default async function page({
     params: Promise<{ payload : string }>
   }) {
 
-  const payload : CartDataType = JSON.parse(decodeURIComponent((await params).payload))
+  const payload : IUrlPayload = JSON.parse(decodeURIComponent((await params).payload))
   
   return (
     <section>

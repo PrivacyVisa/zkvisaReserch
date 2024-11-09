@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react'
+import { useState } from 'react'
 
-import { Good , TransactionType ,CartDataType } from '../interface/transaction';
+import { Good, IUrlPayload } from '../interface/transaction';
 
 const AvailableItems: Good[] = [
     { 
@@ -25,8 +25,8 @@ const AvailableItems: Good[] = [
 ];
 
 export default function MainShopContainer() {
-    const [cart, setCart] = useState<CartDataType>([]);
-
+    const [cart, setCart] = useState<Good[]>([]);
+    const origin = "E-commerce Demo for ZkVisa"
     const addToCart = (item: Good) => {
         setCart((prevCart) => {
             const existingItem = prevCart.find((cartItem) => cartItem.name === item.name);
@@ -45,12 +45,16 @@ export default function MainShopContainer() {
     };
 
     const calculateTotal = () => {
-        return cart.reduce((total, item) => total + item.amount * item.ppp, 0);
-    };
+        return cart.reduce((total, item) => total + item.amount * item.ppp, 0)
+    }
 
     const OnPurchaseHandler = ()=>{
         if (cart.length > 0 ){
-            const HashedCart = encodeURIComponent(JSON.stringify(cart))
+            const payload : IUrlPayload = {
+                Goods : cart,
+                origin
+            }
+            const HashedCart = encodeURIComponent(JSON.stringify(payload))
             // console.log("redirect to ",process.env.ZK_VISA_URL)
             const paymentUrl = `${process.env.ZK_VISA_URL}/payment/${HashedCart}`
             window.open(paymentUrl, "_blank");
