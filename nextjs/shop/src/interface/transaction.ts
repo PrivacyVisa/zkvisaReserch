@@ -7,5 +7,13 @@ export interface Good {
 
 export interface IUrlPayload { 
     Goods : Good[]
-    origin : string 
+    Origin : string 
+    CardInfo : Partial<ICardInfo>
 }
+
+export type ICardInfo = {
+    cardNumber: string
+    expiryMonth: string
+    expiryYear: string
+    cvc: string
+};

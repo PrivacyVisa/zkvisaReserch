@@ -1,6 +1,8 @@
 
 import { useState } from 'react'
 
+import { useForm } from 'react-hook-form';
+
 import { Good, IUrlPayload } from '../interface/transaction';
 
 const AvailableItems: Good[] = [
@@ -27,6 +29,8 @@ const AvailableItems: Good[] = [
 export default function MainShopContainer() {
     const [cart, setCart] = useState<Good[]>([]);
     const origin = "E-commerce Demo for ZkVisa"
+    const { register, handleSubmit, setValue, formState: { errors } } = useForm<{ cardNumber: string }>();
+
     const addToCart = (item: Good) => {
         setCart((prevCart) => {
             const existingItem = prevCart.find((cartItem) => cartItem.name === item.name);
@@ -48,24 +52,31 @@ export default function MainShopContainer() {
         return cart.reduce((total, item) => total + item.amount * item.ppp, 0)
     }
 
-    const OnPurchaseHandler = ()=>{
-        if (cart.length > 0 ){
-            const payload : IUrlPayload = {
-                Goods : cart,
-                origin
-            }
-            const HashedCart = encodeURIComponent(JSON.stringify(payload))
-            // console.log("redirect to ",process.env.ZK_VISA_URL)
-            const paymentUrl = `${process.env.ZK_VISA_URL}/payment/${HashedCart}`
-            window.open(paymentUrl, "_blank");
-        }
+    // Format card number to add spaces every 4 digits
+    const formatCardNumber = (value: string) => {
+        const cleaned = value.replace(/\D/g, '').slice(0, 16); // Limit to 16 digits
+        return cleaned.replace(/(.{4})/g, '$1 ').trim();
+    };
 
-        // More context 
-        // also send cart to bank here as a transaction to provide bank to generate a proof
-    }
+    // Handle changes in card number input and apply formatting
+    const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const formatted = formatCardNumber(e.target.value);
+        setValue("cardNumber", formatted, { shouldValidate: true });
+    };
+
+    // Purchase handler
+    const onPurchaseHandler = (data: { cardNumber: string }) => {
+        if (cart.length > 0) {
+            const payload: IUrlPayload = { Goods: cart, Origin: origin, CardInfo: { cardNumber: data.cardNumber } };
+            const hashedCart = encodeURIComponent(JSON.stringify(payload));
+            const paymentUrl = `${process.env.ZK_VISA_URL}/payment/${hashedCart}`;
+            window.open(paymentUrl, "_blank");
+            // Also send to bank / api/store/transaction/data
+        }
+    };
 
     return (
-        <section className="flex flex-row gap-x-[5vw]">
+        <section className="flex flex-row gap-x-[5vw] py-[3vh] px-[3vw]">
             <div className='flex flex-col w-7/12 items-center'>
                 <h1 className="text-2xl font-bold mb-4">Select Items</h1>
                 <div className="flex flex-col w-full">
@@ -85,32 +96,58 @@ export default function MainShopContainer() {
                 </div>
             </div>
             <div className='flex flex-col w-5/12'> 
-                <h2 className="text-xl font-bold mb-2">Cart Summary</h2>
-                {cart.length > 0 ? (
-                    <div className="flex flex-col border-t pt-4">
-                        {cart.map((item, index) => (
-                        <div key={index} className="flex justify-between mb-2">
-                            <span>{item.name} (x{item.amount})</span>
-                            <span>${item.amount * item.ppp}</span>
+                <div className='flex flex-col'>
+                    <h2 className="text-xl font-bold mb-2">Cart Summary</h2>
+                    {cart.length > 0 ? (
+                        <div className="flex flex-col border-t pt-4 gap-y-[1vh]">
+                            {cart.map((item, index) => (
+                                <div key={index} className="flex justify-between mb-2">
+                                    <span>{item.name} (x{item.amount})</span>
+                                    <span>${item.amount * item.ppp}</span>
+                                </div>
+                            ))}
+                            <form
+                                className='flex flex-col' 
+                                onSubmit={handleSubmit(onPurchaseHandler)}
+                            >
+                                <label className='text-xl font-medium'>
+                                    Credit card number
+                                </label>
+                                <div className='flex flex-row justify-between items-center'>
+                                    <input
+                                        type="text"
+                                        id="cardNumber"
+                                        placeholder="1234 5678 9123 4567"
+                                        className={`mt-1 px-3 py-2 border ${errors.cardNumber ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                                        {...register("cardNumber", {
+                                            required: "Card number is required",
+                                            validate: (value) => {
+                                                const cleaned = value.replace(/\D/g, '');
+                                                return cleaned.length === 16 || "Card number must be 16 digits";
+                                            },
+                                        })}
+                                        onChange={handleCardNumberChange}
+                                    />         
+                                    <div className="font-bold text-lg mt-4">
+                                        Total: ${calculateTotal()}
+                                    </div>                                        
+                                </div>
+                                {errors.cardNumber && <p className="text-red-500 text-sm">{errors.cardNumber.message}</p>}
+                                <button
+                                    type='submit'
+                                    className="mt-2 bg-blue-500 text-white py-1 px-4 rounded"
+                                >
+                                    Purchase
+                                </button>
+
+                            </form>
                         </div>
-                        ))}
-                        <div className="font-bold text-lg mt-4">
-                        Total: ${calculateTotal()}
-                        </div>
-                    </div>
-                    ) : (
-                    <p className="text-gray-500">Your cart is empty.</p>
-                )}
-                    <button
-                        onClick={(e) => {
-                            e.preventDefault()
-                            OnPurchaseHandler()
-                        }}
-                        className="mt-2 bg-blue-500 text-white py-1 px-4 rounded"
-                    >
-                    Purchase
-                </button>
+                        ) : (
+                            <p className="text-gray-500">Your cart is empty.</p>
+                        )}
+                </div>
             </div>
+
         </section>
     )
 }

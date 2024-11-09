@@ -8,7 +8,7 @@ config();
 export default defineConfig({
   plugins: [react()],
   server : {
-    port : 8001
+    port : 8000
   },
   define: {
     'process.env': process.env
