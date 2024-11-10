@@ -3,7 +3,9 @@ import { useState } from 'react'
 
 import { useForm } from 'react-hook-form';
 
-import { Good, IUrlPayload } from '../interface/transaction';
+import * as CryptoJS from "crypto-js";
+
+import { Good, IUrlBankPayload, IUrlUserPayload } from '../interface/transaction';
 
 const AvailableItems: Good[] = [
     { 
@@ -64,14 +66,43 @@ export default function MainShopContainer() {
         setValue("cardNumber", formatted, { shouldValidate: true });
     };
 
+    function calculateTotalAmount(goods: Good[]): number {
+        return goods.reduce((total, item) => total + item.amount * item.ppp, 0);
+    }
+
+    function hasherCart(cart : Good[]) : string {
+        const cartString = JSON.stringify(cart)
+        const hashedCart = CryptoJS.SHA256(cartString).toString(CryptoJS.enc.Hex)
+        return hashedCart
+    }
+
     // Purchase handler
     const onPurchaseHandler = (data: { cardNumber: string }) => {
         if (cart.length > 0) {
-            const payload: IUrlPayload = { Goods: cart, Origin: origin, CardInfo: { cardNumber: data.cardNumber } };
-            const hashedCart = encodeURIComponent(JSON.stringify(payload));
-            const paymentUrl = `${process.env.ZK_VISA_URL}/payment/${hashedCart}`;
-            window.open(paymentUrl, "_blank");
-            // Also send to bank / api/store/transaction/data
+            // Sending hased cart & also 
+            const payloadToUser : IUrlUserPayload = {
+                goodsHashed : hasherCart(cart),
+                goods : cart,
+                origin: origin,
+                cardInfo: {
+                    cardNumber: data.cardNumber 
+                }, 
+                amount: calculateTotalAmount(cart)
+            }
+            const encodedCart = encodeURIComponent(JSON.stringify(payloadToUser));
+            const paymentUserUrl = `${process.env.ZK_VISA_URL}/payment/${encodedCart}`;
+            window.open(paymentUserUrl, "_blank");
+
+            const payloadToBank : IUrlBankPayload = {
+                goodsHashed : hasherCart(cart),
+                origin: origin,
+                cardInfo: {
+                    cardNumber: data.cardNumber 
+                }, 
+                amount: calculateTotalAmount(cart)
+            }
+            // express request to port 8004 rust absed for compute zk 
+            sendPayloadToBank(payloadToBank)
         }
     };
 
@@ -150,4 +181,25 @@ export default function MainShopContainer() {
 
         </section>
     )
+}
+
+
+async function sendPayloadToBank(payload : IUrlBankPayload) {
+    // URL encode the payload
+    const encodedPayload = encodeURIComponent(JSON.stringify(payload));
+
+    try {
+        console.log("sending request to ", `http://localhost:8005/api/bank/visa/generate_proof/${encodedPayload}`)
+        const response = await fetch(`http://localhost:8005/api/bank/visa/generate_proof/${encodedPayload}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+
+        const result = await response.json();
+        console.log("Response from Rust server:", result);
+    } catch (error) {
+        console.error("Error sending payload to Rust server:", error);
+    }
 }
