@@ -1,24 +1,18 @@
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
-pub struct Good {
-    pub name : String,
-    pub amount : u32,
-    pub ppp : f64,
-
+pub struct IUrlBankPayload {
+    #[serde(rename = "goodsHashed")]
+    pub goods_hashed: String,
+    pub origin: String,
+    #[serde(rename = "cardInfo")]
+    pub card_info: ICardInfo,
+    pub amount: i32,
 }
 
 #[derive(Deserialize, Debug)]
-pub struct CardInfo {
+pub struct ICardInfo {
+    #[serde(rename = "cardNumber")]
     pub card_number: String,
-    pub expiry_month: String,
-    pub expiry_year: String,
-    pub cvc: String,
-}
-
-#[derive(Deserialize, Debug)]
-pub struct IUrlPayload{
-    pub origin : String,
-    pub goods : Vec<Good>,
-    pub card_info : CardInfo,
+    // Add other fields if necessary, using `serde(rename = "...")` as needed
 }

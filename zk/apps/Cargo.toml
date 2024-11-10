@@ -26,6 +26,7 @@ serde = { workspace = true }
 anyhow = "1.0.44"
 hex = "0.4.3"
 actix-web = "4"
+actix-cors = "0.6"
 urlencoding = "2.1" # For decoding URL-encoded strings
 serde_json = "1.0"
 

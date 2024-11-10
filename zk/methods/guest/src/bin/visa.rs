@@ -4,10 +4,10 @@ fn main() {
     // TODO: Implement your guest code here
 
     // read the input
-    let input: u32 = env::read();
+    let payload_internal_env: u32 = env::read();
 
     // TODO: do something with the input
 
     // write public output to the journal
-    env::commit(&input);
+    env::commit(&payload_internal_env);
 }
