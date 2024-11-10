@@ -6,7 +6,7 @@ use apps::utils::interface::IUrlPayload ;
 
 // Define the API endpoint
 
-#[post("/api/bank/visa/generate_proof/{hashed_payload}")]
+#[post("/api/client/visa/generate_proof/{hashed_payload}")]
 async fn generating_proof(hashed_payload : web::Path<String> ) -> impl Responder { 
     let decoded_payload = decode(&hashed_payload).unwrap_or_else(|_| "".to_string().into());    
     let payload_result: Result<IUrlPayload, _> = from_str(&decoded_payload);
@@ -33,7 +33,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .service(generating_proof) 
     })
-    .bind("localhost:8005")?
+    .bind("localhost:8004")?
     .run()
     .await
 }

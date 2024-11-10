@@ -18,7 +18,7 @@ pub struct CardInfo {
 
 #[derive(Deserialize, Debug)]
 pub struct IUrlPayload{
-    origin : String,
-    goods : Vec<Good>,
-    card_info : CardInfo,
+    pub origin : String,
+    pub goods : Vec<Good>,
+    pub card_info : CardInfo,
 }
