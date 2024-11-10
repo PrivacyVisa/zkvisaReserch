@@ -1,10 +1,3 @@
-export type ICardInfo = {
-    cardNumber: string
-    expiryMonth: string
-    expiryYear: string
-    cvc: string
-};
-
 export interface Good { 
     name: string
     amount: number
@@ -12,14 +5,27 @@ export interface Good {
     description : string
 } 
 
-export interface ITransaction {
-    Origin : string
-    Goods : Good[]
-    CardInfo : ICardInfo
+
+export type ICardInfo = {
+    cardNumber: string
+    expiryMonth: string
+    expiryYear: string
+    cvc: string
+};
+
+
+
+export interface IUrlBankPayload { 
+    goodsHashed : string
+    origin : string 
+    cardInfo : Partial<ICardInfo>
+    amount : number
 }
 
-export interface IUrlPayload { 
-    Origin : string
-    Goods : Good[] 
-    CardInfo : Partial<ICardInfo>
+export interface IUrlUserPayload { 
+    goodsHashed : string
+    goods : Good[]
+    origin : string 
+    cardInfo : Partial<ICardInfo>
+    amount : number
 }

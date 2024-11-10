@@ -1,12 +1,12 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { useForm, FieldError, UseFormRegister, UseFormSetValue } from 'react-hook-form';
-import { ITransaction , ICardInfo , IUrlPayload , Good } from '@/interface/transaction/transaction';
+import { Good , ICardInfo , IUrlUserPayload , IUrlBankPayload } from '@/interface/transaction/transaction';
 
 
 
 type Props = {
-    payload: IUrlPayload ;
+    UserPayload : IUrlUserPayload ;
 };
 
 type InputProps = {
@@ -149,7 +149,7 @@ function CVCInput({ register, error }: CVCInputProps) {
     );
 }
 
-export default function MainPaymentContainer({ payload }: Props) {
+export default function MainPaymentContainer({ UserPayload }: Props) {
     const { register, handleSubmit, setValue, formState: { errors } } = useForm<ICardInfo>();
     const OnGeneratingProof = (data: ICardInfo) => {
         const cardRefactor = data.cardNumber.replaceAll(" ","")  
@@ -157,26 +157,28 @@ export default function MainPaymentContainer({ payload }: Props) {
             ...data,
             cardNumber : cardRefactor
         }
-        const transaction : ITransaction = {
-            Origin : payload.Origin,
-            CardInfo : CardInfoTemp,
-            Goods : payload.Goods
+        // transaction sending without reveal what we buying just send hashed of carts 
+        const transaction : IUrlBankPayload = {
+            origin : UserPayload.origin,
+            cardInfo : CardInfoTemp,
+            goodsHashed : UserPayload.goodsHashed,
+            amount : UserPayload.amount
         } 
         console.log(transaction)
     }                                                           
 
     useEffect(() => {
-        if (payload && payload.CardInfo && payload.CardInfo.cardNumber) {
-            setValue("cardNumber", payload.CardInfo.cardNumber); // Set card number from payload
+        if (UserPayload && UserPayload.cardInfo && UserPayload.cardInfo.cardNumber) {
+            setValue("cardNumber", UserPayload.cardInfo.cardNumber); // Set card number from payload
         }
-    }, [payload, setValue]);
+    }, [UserPayload, setValue]);
 
     return (
         <section className="flex flex-row px-[2vw] gap-x-[2vw] py-[3vh]">
             <div className="flex flex-col w-7/12 items-center">
                 <h1 className="text-xl font-bold mb-4">Payment Summary</h1>
                 <ul>
-                    {payload.Goods.map((item: Good, index) => (
+                    {UserPayload.goods.map((item: Good, index) => (
                         <li key={index} className="flex flex-col justify-between items-center p-4 border rounded-lg shadow-sm">
                             <div>
                                 <h2 className="text-xl font-semibold">{item.name}</h2>

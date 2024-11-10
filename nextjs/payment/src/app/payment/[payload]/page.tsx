@@ -1,7 +1,7 @@
 import React from 'react'
 
 import MainPaymentContainer from '@/Components/Payment/MainContainer'
-import { IUrlPayload } from '@/interface/transaction/transaction'
+import { IUrlUserPayload } from '@/interface/transaction/transaction'
 
 export default async function page({
     params,
@@ -9,11 +9,11 @@ export default async function page({
     params: Promise<{ payload : string }>
   }) {
 
-  const payload : IUrlPayload = JSON.parse(decodeURIComponent((await params).payload))
+  const UserPayload : IUrlUserPayload = JSON.parse(decodeURIComponent((await params).payload))
   
   return (
     <section>
-        <MainPaymentContainer payload={payload}/>
+        <MainPaymentContainer UserPayload={UserPayload}/>
     </section>
     )
 }
