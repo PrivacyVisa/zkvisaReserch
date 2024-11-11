@@ -4,21 +4,21 @@ use serde_json::{from_str, json};
 use urlencoding::decode;
 
 use apps::utils::{
-    interface::IUrlBankPayload,
-    genreating_proof::bonsai_generating_proof
+    genreating_proof::{
+        bonsai_generating_proof,
+        stark_generating_proof
+    },
+    interface::IUrlBankPayload
 };
 
 // Define the API endpoint for bank finalization and verification
 #[post("/api/bank/visa/generate_proof/{hashed_payload}")]
 async fn bank_finalize_and_verify(hashed_payload: web::Path<String>) -> impl Responder {
-    // Step 1: Decode the URL-encoded payload
     let decoded_payload = decode(&hashed_payload).unwrap_or_else(|_| "".to_string().into());
     println!("Decoded payload: {:?}", decoded_payload);
 
-    // Step 2: Parse the decoded JSON payload into IUrlBankPayload
     let payload_result: Result<IUrlBankPayload, _> = from_str(&decoded_payload);
 
-    // Step 3: Handle result and perform actions based on the payload
     match payload_result {
         Ok(payload) => {
             // Log received payload details
@@ -29,7 +29,9 @@ async fn bank_finalize_and_verify(hashed_payload: web::Path<String>) -> impl Res
             println!("- Goods Hashed: {:?}", payload.goods_hashed);
 
             // Call the proof-generating function (if needed)
-            // bonsai_generating_proof();  // Uncomment if this function should be called here
+            let receipt = stark_generating_proof(payload).unwrap() ; 
+            // let receipt = bonsai_generating_proof(payload).await.expect("Receipt generated here") ;
+            // println!("public output : {:?} : ",receipt.journal.decode().unwrap()) ; 
 
             // Respond with success JSON
             HttpResponse::Ok().json(json!({
