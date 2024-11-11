@@ -3,4 +3,9 @@ Cargo.lock
 methods/guest/Cargo.lock
 target/
 
+node_modules
 .env
+/test
+
+# Hardhat Ignition default folder for deployments against a local node
+hardhat/ignition/deployments/chain-31337/*
